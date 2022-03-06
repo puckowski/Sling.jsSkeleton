@@ -7,6 +7,10 @@ class TodoListCompletedComponent {
     constructor() {
     }
 
+    slAfterInit() {
+        this.applyCheckedProperty();
+    }
+    
     slOnDestroy() {
         console.log('Destroy completed list component');
     }
@@ -56,6 +60,7 @@ class TodoListCompletedComponent {
                                     markup('input', {
                                         attrs: {
                                             type: 'checkbox',
+                                            style: 'margin-right: 0.25rem;',
                                             ...note.completed && { checked: 'true' },
                                             onchange: this.completeNote.bind(this, note)
                                         }

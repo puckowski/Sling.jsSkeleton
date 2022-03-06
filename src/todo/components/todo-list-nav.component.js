@@ -12,7 +12,8 @@ class TodoListNavComponent {
     slOnInit() {
         this.performRouteAction(getRouteSegments()[0]);
 
-        let routeObservable = Observable(getRouteSegments());
+        const state = getState();
+        const routeObservable = state.getRouteObservable();
         routeObservable.subscribe(function (routeArr) {
             if (routeArr.length > 0) {
                 this.routeString = routeArr[0];

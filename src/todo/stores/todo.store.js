@@ -1,9 +1,17 @@
+import { getRouteSegments } from "slingjs";
+import { Observable } from "slingjs/sling-reactive.min";
+
 class StoreTodo {
     constructor() {
         this.notes = [];
         this.noteAddedCount = 0;
+        this.routeObservable = Observable(getRouteSegments());
     }
 
+    getRouteObservable() {
+        return this.routeObservable;
+    }
+    
     getNotes() {
         return this.notes;
     }

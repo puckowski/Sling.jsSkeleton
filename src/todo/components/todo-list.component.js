@@ -1,6 +1,7 @@
 import NoteService from '../services/note.service.js';
 
-import { getState, setState, markup } from '../../../node_modules/slingjs/sling.min';
+import { getState, setState, markup, getRouteSegments } from '../../../node_modules/slingjs/sling.min';
+import { Observable } from 'slingjs/sling-reactive.min';
 
 class TodoListComponent {
 
@@ -19,6 +20,15 @@ class TodoListComponent {
         });
 
         this.applyCheckedProperty();
+
+        const routeObservable = stateObj.getRouteObservable();
+        const routeFunction = function (routeArr) {
+            if (routeArr.length > 0 && routeArr[0] === 'completed') {
+                this.completedNotesToAnimate = [];
+                routeObservable.clearSubscription(routeFunction);
+            }
+        }.bind(this);
+        routeObservable.subscribe(routeFunction);
     }
 
     applyCheckedProperty() {
@@ -27,7 +37,7 @@ class TodoListComponent {
 
         document.querySelectorAll('#divTodoList input').forEach((node, index) => {
             if (index % 2 === 0) {
-                node.checked = notes[index].completed;
+                node.checked = notes[index / 2].completed;
             }
         });
     }
@@ -108,6 +118,7 @@ class TodoListComponent {
                         ...Array.from(getState().getNotes(), (note, index) =>
                             markup('div', {
                                 attrs: {
+                                    class: 'animEnter',
                                     style: 'width: 100%;',
                                     slanimatedestroy: 'animExit',
                                     slanimatedestroytarget: this.slDetachedOnNodeDestroy.bind(this)
@@ -116,6 +127,7 @@ class TodoListComponent {
                                     markup('input', {
                                         attrs: {
                                             type: 'checkbox',
+                                            style: 'margin-right: 0.25rem;',
                                             ...note.completed && { checked: 'true' },
                                             onchange: this.completeNote.bind(this, note)
                                         }
