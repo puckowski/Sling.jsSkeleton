@@ -1,7 +1,6 @@
 import NoteService from '../services/note.service.js';
 
-import { getState, setState, markup, getRouteSegments } from '../../../node_modules/slingjs/sling.min';
-import { Observable } from 'slingjs/sling-reactive.min';
+import { getState, setState, markup } from '../../../node_modules/slingjs/sling.min';
 
 class TodoListComponent {
 
