@@ -5,6 +5,31 @@ import { getState, setState, markup } from '../../../node_modules/slingjs/sling.
 class TodoListComponent {
 
     constructor() {
+        this.completedNotesToAnimate = [];
+    }
+
+    slOnInit() {
+        const stateObj = getState();
+
+        this.completedNotesToAnimate = [];
+        stateObj.getNotes().forEach((stateNote, index) => {
+            if (stateNote.completed) {
+                this.completedNotesToAnimate.push(index);
+            }
+        });
+
+        this.applyCheckedProperty();
+    }
+
+    applyCheckedProperty() {
+        const stateObj = getState();
+        const notes = stateObj.getNotes();
+
+        document.querySelectorAll('#divTodoList input').forEach((node, index) => {
+            if (index % 2 === 0) {
+                node.checked = notes[index].completed;
+            }
+        });
     }
 
     updateReadonlyAttribute(note, updatedNoteIndex) {
@@ -39,6 +64,13 @@ class TodoListComponent {
         setState(stateObj);
         new NoteService().setNoteCookie(stateObj);
 
+        this.completedNotesToAnimate = [];
+        stateObj.getNotes().forEach((stateNote, index) => {
+            if (stateNote.completed) {
+                this.completedNotesToAnimate.push(index);
+            }
+        });
+
         if (updatedNote === true) {
             this.updateReadonlyAttribute(note, updatedNoteIndex);
         }
@@ -51,10 +83,15 @@ class TodoListComponent {
             if (stateNote === note) {
                 stateNote.text = event.target.value;
             }
-        })
+        });
 
         setState(stateObj);
         new NoteService().setNoteCookie(stateObj);
+    }
+
+    slDetachedOnNodeDestroy(proposedNode) {
+        const parent = proposedNode.parentNode;
+        return parent.childNodes[this.completedNotesToAnimate.pop()];
     }
 
     view() {
@@ -68,12 +105,12 @@ class TodoListComponent {
                         style: "width: 50%; margin: auto; padding: 1rem;"
                     },
                     children: [
-                        ...Array.from(getState().getNotes(), (note) =>
+                        ...Array.from(getState().getNotes(), (note, index) =>
                             markup('div', {
                                 attrs: {
-                                    class: 'animEnter',
                                     style: 'width: 100%;',
-                                    slanimatedestroy: 'animExit'
+                                    slanimatedestroy: 'animExit',
+                                    slanimatedestroytarget: this.slDetachedOnNodeDestroy.bind(this)
                                 },
                                 children: [
                                     markup('input', {
