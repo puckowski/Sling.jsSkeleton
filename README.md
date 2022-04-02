@@ -2,7 +2,7 @@
 
 # Sling
 
-Sling is a client-side JavaScript framework for building Single Page Applications (SPAs). Sling is lightweight, **16KB minified, and less than 5KB gzipped**.
+Sling is a client-side JavaScript framework for building Single Page Applications (SPAs). Sling is lightweight, **21KB minified, and less than 7KB gzipped**.
 
 Sling creates and uses an Incremental DOM to perform differential updates for fast rendering.
 
@@ -196,6 +196,38 @@ s.DETACHED_SET_TIMEOUT(() => {
 }, 0);
 ```
 
+For functions bound in model views that do not trigger change detection, but are run in automatic change detection mode, start the function name with case-sensitive ```slDetached```. Below is an example of a detached ```slDetachedIncrementCount``` function that does not trigger change detection when run.
+
+```javascript
+export class TestDetachedFunctionComponent {
+    constructor() {
+        this.count = 0;
+    }
+
+    slDetachedIncrementCount() {
+        this.count++;
+    }
+
+    view() {
+        return markup('div', {
+            attrs: {
+                'id': 'divDetachedExample'
+            },
+            children: [
+                markup('button', {
+                    attrs: {
+                        onclick: this.slDetachedIncrementCount.bind(this),
+                    },
+                    children: [
+                        textNode('Detached Button')
+                    ]
+                })
+            ]
+        })
+    }
+}
+```
+
 ## Lifecycle Hooks
 
 Components may specify up to three lifecycle hooks:
@@ -253,9 +285,10 @@ Structural directives modify interactions with the DOM layout.
 
 Attribute directives change the appearance or behavior of a DOM element.
 
-|Directive               |Type      |Behavior                                                           |
-|------------------------|----------|-------------------------------------------------------------------|
-|```slanimatedestroy```  |Attribute |Wait for CSS class animation to finish before removal from the DOM.|
+|Directive                     |Type      |Behavior                                                                                            |
+|------------------------------|----------|----------------------------------------------------------------------------------------------------|
+|```slanimatedestroy```        |Attribute |Wait for CSS class animation to finish before removal from the DOM.                                 |
+|```slanimatedestroytarget```  |Attribute |Used together with ```slanimatedestroy```. Should be a function which returns a DOM node to animate. The proposed node to animate is supplied as an argument to the function.|
 
 Example directive usage:
 
@@ -351,7 +384,7 @@ view() {
 }			
 ```
 
-Example of ``slfor``` directive usage:
+Example of ```slfor``` directive usage:
 
 ```javascript
 export class TestRenderElement3 {
@@ -490,6 +523,62 @@ export class TestRenderElement3 {
                                 'slfor': 'myfor:data:makeRow:updateRow'
                             }
                         })
+                    ]
+                })
+            ]
+        });
+    }
+}
+```
+
+Below is an example of ```slanimatedestroytarget``` directive usage. 
+
+Note that for ```slanimatedestroytarget```, unlike regular ```slanimatedestroy```, change detection is paused for the entire duration of all animated elements. Change detection is resumed and called immediately after that last animation ends.
+
+```javascript
+export class TestKeyedHideAnimation1 {
+    constructor() {
+        this.list = ['a', 'b', 'c'];
+        this.toRemoveIndex = 1;
+    }
+
+    slDetachedOnNodeDestroy(proposedNode) {
+        const parent = proposedNode.parentNode;
+        return parent.childNodes[this.toRemoveIndex];
+    }
+
+    onHide() {
+        this.list.splice(1, 1);
+    }
+
+    view() {
+        return markup('div', {
+            attrs: {
+                id: 'divkeyedanimation1'
+            },
+            children: [
+                ...Array.from(this.list, (note) =>
+                    markup('div', {
+                        attrs: {
+                            slanimatedestroy: 'animExit',
+                            slanimatedestroytarget: this.slDetachedOnNodeDestroy.bind(this)
+                        },
+                        children: [
+                            markup('p', {
+                                children: [
+                                    textNode(note)
+                                ]
+                            })
+                        ]
+                    })
+                ),
+                markup('button', {
+                    attrs: {
+                        id: 'keyedhidebtn1',
+                        onclick: this.onHide.bind(this)
+                    },
+                    children: [
+                        textNode('Keyed Hide Button')
                     ]
                 })
             ]
@@ -833,6 +922,7 @@ Below is a list of possible ```routeObj``` properties:
 |onActivationCheck |A function that returns true if route action may be taken, otherwise false.                                                          |
 |onActivationFail  |Object with ```route``` property to route to on ```onActivationCheck``` fail. Also may specify ```params``` and ```attachDetector```.|
 |onBeforeRoute     |Function to execute before taking route action. Called after onActivationCheck and before the route action is taken.                 |
+|animateDestroy    |Used with animation structural directives to animate router transitions.                                                             |
 
 Example route definition:
 
@@ -909,6 +999,31 @@ routeObservable.subscribe(function(routeArr) {
 __object getRouteParams ( )__
 
 Returns the current route's parameters as an object. Returns ```{ }``` if there are none.
+
+## getRouteQueryVariables
+__[] getRouteQueryVariables ( )__
+
+Returns a list of objects containing parsed query string variables in the following format:
+
+```javascript
+[
+  { var: 'param1', value: '123' },
+  { var: 'param2', value: 'some+text' }
+]
+```
+
+Note ```value``` will always be a string.
+
+## setRouteStrategy
+__void setRouteStrategy ( newStrategy )__
+
+Sets the router strategy. Valid options for ```newStrategy``` are listed in the table below.
+
+|Strategy |Description                     |Example                                  |
+|---------|--------------------------------|-----------------------------------------|
+|'#'      |A hash based strategy.          |http://localhost:8080/todo.html#/docs    |
+|'?'      |A query string route strategy.  |http://localhost:8080/?/query=1          |
+|''       |A path name strategy.           |http://localhost:8080/docs/1             |
 
 # Core Change Detection API
 
