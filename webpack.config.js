@@ -1,15 +1,21 @@
-const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+var path = require('path');
 
 var config = {
-    context: __dirname + '/src',
-    entry: {
-        app: './todo.js',
+    performance: {
+        maxAssetSize: 5000000,
     },
+    devServer: {
+        static: {
+            directory: path.join(__dirname, 'dist'),
+        },
+    },
+    context: __dirname + '/src',
+    entry: path.join(__dirname, 'src'),
     output: {
-        path: __dirname + '/dist',
-        filename: 'dist.js',
+        path: path.join(__dirname, 'dist'),
+        clean: true
     },
     module: {
         rules: [
@@ -55,7 +61,8 @@ var config = {
             { from: './css', to: '' },
             { from: './js', to: '' }
         ]),
-    ]
+    ],
+    mode: 'production'
 };
 
 module.exports = config;
