@@ -55,12 +55,14 @@ var config = {
         })],
     },
     plugins: [
-        new CopyWebpackPlugin([
-            { from: './*.html', to: '' },
-            { from: './images', to: 'images' },
-            { from: './css', to: '' },
-            { from: './js', to: '' }
-        ]),
+        new CopyWebpackPlugin({
+            patterns: [
+                { from: './*.html', to: '' },
+                { from: './images', to: 'images' },
+                { from: './css', to: '' },
+                { from: './js', to: '', noErrorOnMissing: true }
+            ]
+        }),
     ],
     mode: 'production'
 };
