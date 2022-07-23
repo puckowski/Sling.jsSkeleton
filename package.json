@@ -45,7 +45,7 @@
     "webpack-dev-server": "^4.9.3"
   },
   "dependencies": {
-    "slingjs": "^16.1.0",
+    "slingjs": "^16.3.1",
     "terser-webpack-plugin": "^5.3.3"
   }
 }
